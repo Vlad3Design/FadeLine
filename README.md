@@ -13,6 +13,8 @@ Clarity in the chaos. FadeLine dims the noise so your thoughts can speak.
   - **Presets:** Quick presets for different focus styles (Gentle, Balanced, Strong, Ultra Focus)
 - **Live preview:** See exactly how your settings will look in the settings tab.
 
+![FadeLine Plugin](FadeLine-Settings.jpg)
+
 ## Presets
 - **Gentle:** fade amount 0.4, radius 2
 - **Balanced (default):** fade amount 0.1, radius 4

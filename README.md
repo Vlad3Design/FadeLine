@@ -2,11 +2,11 @@
 
 Clarity in the chaos. FadeLine dims the noise so your thoughts can speak. Made for Obsidian.
 
-![FadeLine Plugin](FadeLine.jpg)
+![Image](https://github.com/user-attachments/assets/c484b09c-5cb9-41a7-8d4a-32e3a2f3ae85)
 
 
 ## Features
-![Image](https://github.com/user-attachments/assets/3b6677ee-cc09-4e71-b1e6-2f5b2e45b224)
+
 - **Gradual fade:** The further a line is from your cursor, the more faded it becomes.
 - **Active line always clear:** The current line is always fully visible, even when not editing.
 - **Customizable:**
@@ -15,13 +15,15 @@ Clarity in the chaos. FadeLine dims the noise so your thoughts can speak. Made f
   - **Presets:** Quick presets for different focus styles (Gentle, Balanced, Strong, Ultra Focus)
 - **Live preview:** See exactly how your settings will look in the settings tab.
 
-![FadeLine Plugin](FadeLine-Settings.jpg)
+![Image](https://github.com/user-attachments/assets/3b6677ee-cc09-4e71-b1e6-2f5b2e45b224)
 
 ## Presets
 - **Gentle:** fade amount 0.4, radius 2
 - **Balanced (default):** fade amount 0.1, radius 4
 - **Strong:** fade amount 0.2, radius 6
 - **Ultra Focus:** fade amount 0.05, radius 6
+
+![FadeLine Plugin](FadeLine-Settings.jpg)
 
 ## Installation
 1. Download `main.js`, `manifest.json`, and `styles.css` into a folder named `FadeLine` inside your Obsidian plugins directory.

@@ -4,7 +4,9 @@ Clarity in the chaos. FadeLine dims the noise so your thoughts can speak. Made f
 
 ![FadeLine Plugin](FadeLine.jpg)
 
+
 ## Features
+![Image](https://github.com/user-attachments/assets/3b6677ee-cc09-4e71-b1e6-2f5b2e45b224)
 - **Gradual fade:** The further a line is from your cursor, the more faded it becomes.
 - **Active line always clear:** The current line is always fully visible, even when not editing.
 - **Customizable:**

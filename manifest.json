@@ -1,0 +1,10 @@
+{
+  "id": "fadeline",
+  "name": "FadeLine",
+  "version": "1.0.0",
+  "minAppVersion": "0.15.0",
+  "description": "Fade all lines except the current one, to help you focus.",
+  "author": "Vlad 3Design",
+  "authorUrl": "https://github.com/Vlad3Design",
+  "isDesktopOnly": false
+} 

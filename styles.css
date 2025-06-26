@@ -1,0 +1,32 @@
+:root {
+  --fadeline-fade-amount: 0.4;
+  --fadeline-fade-radius: 3;
+}
+
+.fadeline-enabled .cm-line {
+  transition: opacity 0.2s;
+}
+
+.fadeline-enabled .cm-line.fadeline-current {
+  opacity: 1 !important;
+}
+
+/* Settings preview */
+.fadeline-preview {
+  margin: 16px 0;
+  padding: 16px;
+  background: var(--background-secondary);
+  border-radius: 12px;
+  border: 1px solid var(--background-modifier-border);
+}
+.fadeline-preview-line {
+  padding: 8px 12px;
+  margin: 4px 0;
+  border-radius: 6px;
+  transition: opacity 0.2s;
+  font-family: var(--font-monospace);
+}
+.fadeline-preview-line.fadeline-preview-current {
+  opacity: 1 !important;
+  background: var(--background-modifier-hover);
+} 

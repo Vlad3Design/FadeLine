@@ -1,6 +1,6 @@
 # FadeLine
 
-Clarity in the chaos. FadeLine dims the noise so your thoughts can speak.
+Clarity in the chaos. FadeLine dims the noise so your thoughts can speak. Made for Obsidian.
 
 ![FadeLine Plugin](FadeLine.jpg)
 

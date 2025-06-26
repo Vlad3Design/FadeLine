@@ -4,6 +4,8 @@ Clarity in the chaos. FadeLine dims the noise so your thoughts can speak. Made f
 
 ![Image](https://github.com/user-attachments/assets/c484b09c-5cb9-41a7-8d4a-32e3a2f3ae85)
 
+![Plugin Preview](https://img.shields.io/badge/Obsidian-Plugin-purple) ![License](https://img.shields.io/badge/License-MIT-green) ![Version](https://img.shields.io/badge/Version-1.0.0-blue)
+
 
 ## Features
 

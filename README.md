@@ -78,7 +78,7 @@ Clarity in the chaos. FadeLine dims the noise so your thoughts can speak. Made f
 - **Strong:** Intense focus (0.2 fade, radius 6)
 - **Ultra Focus:** Maximum concentration (0.05 fade, radius 6)
 
-![FadeLine Plugin](FadeLine-Settings.jpg)
+![Image](https://github.com/user-attachments/assets/f69edcbf-6a69-4847-9e94-9ea762813ffc)
 
 ## Installation
 1. Download `main.js`, `manifest.json`, and `styles.css` into a folder named `FadeLine` inside your Obsidian plugins directory.

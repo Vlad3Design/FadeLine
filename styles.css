@@ -11,6 +11,29 @@
   opacity: 1 !important;
 }
 
+/* Auto-scroll indicator */
+.fadeline-auto-scroll-indicator {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: var(--background-primary);
+  border: 2px solid var(--text-accent);
+  border-radius: 8px;
+  padding: 8px 16px;
+  font-size: 14px;
+  color: var(--text-normal);
+  z-index: 1000;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  pointer-events: none;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.fadeline-auto-scroll-indicator.show {
+  opacity: 1;
+}
+
 /* Settings preview */
 .fadeline-preview {
   margin: 16px 0;
@@ -19,6 +42,7 @@
   border-radius: 12px;
   border: 1px solid var(--background-modifier-border);
 }
+
 .fadeline-preview-line {
   padding: 8px 12px;
   margin: 4px 0;
@@ -26,7 +50,86 @@
   transition: opacity 0.2s;
   font-family: var(--font-monospace);
 }
+
 .fadeline-preview-line.fadeline-preview-current {
   opacity: 1 !important;
   background: var(--background-modifier-hover);
+}
+
+/* Auto-scroll settings section */
+.fadeline-auto-scroll-section {
+  margin-top: 20px;
+  padding: 16px;
+  background: var(--background-secondary-alt);
+  border-radius: 8px;
+  border-left: 4px solid var(--text-accent);
+}
+
+/* Scroll info styling */
+.fadeline-scroll-info {
+  margin-bottom: 12px;
+}
+
+.fadeline-scroll-info div {
+  background: var(--background-modifier-hover) !important;
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 6px;
+  padding: 10px 12px;
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+/* Settings sections */
+.fadeline-settings-section {
+  margin: 20px 0;
+  padding: 16px;
+  background: var(--background-secondary-alt);
+  border-radius: 8px;
+  border-left: 3px solid var(--text-accent);
+}
+
+/* Preset descriptions */
+.fadeline-preset-description {
+  font-size: 11px;
+  color: var(--text-muted);
+  margin-top: 4px;
+  font-style: italic;
+}
+
+/* Smooth scrolling for editor */
+.fadeline-enabled .cm-scroller {
+  scroll-behavior: smooth;
+}
+
+/* Enhanced focus line styling */
+.fadeline-enabled .cm-line.fadeline-current {
+  position: relative;
+}
+
+.fadeline-enabled .cm-line.fadeline-current::before {
+  content: '';
+  position: absolute;
+  left: -8px;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+  background: var(--text-accent);
+  border-radius: 2px;
+  opacity: 0.8;
+}
+
+/* Responsive design for settings */
+@media (max-width: 768px) {
+  .fadeline-preview {
+    padding: 12px;
+  }
+  
+  .fadeline-preview-line {
+    padding: 6px 8px;
+    font-size: 12px;
+  }
+  
+  .fadeline-settings-section {
+    padding: 12px;
+  }
 } 

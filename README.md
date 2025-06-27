@@ -4,7 +4,7 @@ Clarity in the chaos. FadeLine dims the noise so your thoughts can speak. Made f
 
 ![Image](https://github.com/user-attachments/assets/c484b09c-5cb9-41a7-8d4a-32e3a2f3ae85)
 
-![Plugin Preview](https://img.shields.io/badge/Obsidian-Plugin-purple) ![License](https://img.shields.io/badge/License-MIT-green) ![Version](https://img.shields.io/badge/Version-1.1.0-blue)
+![Plugin Preview](https://img.shields.io/badge/Obsidian-Plugin-purple) ![License](https://img.shields.io/badge/License-MIT-green) ![Version](https://img.shields.io/badge/Version-1.2.0-blue)
 
 
 ## Features
@@ -12,7 +12,9 @@ Clarity in the chaos. FadeLine dims the noise so your thoughts can speak. Made f
 - **Gradual fade:** The further a line is from your cursor, the more faded it becomes.
 - **Active line always clear:** The current line is always fully visible, even when not editing.
 - **Smart auto-scroll:** Automatically centers the current line in the editor for optimal focus.
+- **Fade toggle:** Option to disable fade effects completely for clean text mode.
 - **Customizable:**
+  - **Enable/Disable fade:** Toggle fade effects on/off with a single click
   - **Fade amount:** Set the minimum opacity for the most distant lines (slider)
   - **Fade radius:** Choose how many lines around the cursor are faded gradually (slider)
   - **Auto-scroll delay:** Control how quickly the editor scrolls to center the current line
@@ -21,7 +23,7 @@ Clarity in the chaos. FadeLine dims the noise so your thoughts can speak. Made f
 - **Live preview:** See exactly how your settings will look in the settings tab.
 - **Click detection:** Automatically updates focus when clicking on different lines.
 
-![Image](https://github.com/user-attachments/assets/e7bc525e-23a1-485e-92a6-0c1bb3f7331f)
+![Image](https://github.com/user-attachments/assets/3b6677ee-cc09-4e71-b1e6-2f5b2e45b224)
 
 ## Use Case Presets
 
@@ -55,6 +57,11 @@ Clarity in the chaos. FadeLine dims the noise so your thoughts can speak. Made f
 - **Auto-scroll:** Disabled
 - **Perfect for:** Minimal visual interference
 
+### **No Fade Mode** ⭐
+- **Fade:** Disabled (clean text mode)
+- **Auto-scroll:** Responsive (200ms delay, 0.3 smoothness)
+- **Perfect for:** Users who prefer clean text without fade effects
+
 ## Auto-Scroll Presets
 
 - **Instant:** Immediate scroll with no delay (0ms delay, 0.1 smoothness)
@@ -71,7 +78,7 @@ Clarity in the chaos. FadeLine dims the noise so your thoughts can speak. Made f
 - **Strong:** Intense focus (0.2 fade, radius 6)
 - **Ultra Focus:** Maximum concentration (0.05 fade, radius 6)
 
-![Image](https://github.com/user-attachments/assets/8f3f3805-3c9f-4710-9d9c-70ab02db8655)
+![FadeLine Plugin](FadeLine-Settings.jpg)
 
 ## Installation
 1. Download `main.js`, `manifest.json`, and `styles.css` into a folder named `FadeLine` inside your Obsidian plugins directory.
@@ -83,15 +90,16 @@ Clarity in the chaos. FadeLine dims the noise so your thoughts can speak. Made f
 
 FadeLine enhances your focus by:
 1. **Detecting your cursor position** in real-time
-2. **Fading distant lines** based on your settings
+2. **Fading distant lines** based on your settings (when fade is enabled)
 3. **Keeping the current line crystal clear** for maximum readability
 4. **Automatically scrolling** to center the active line when needed
 5. **Responding to clicks and cursor movements** for seamless interaction
+6. **Providing fade toggle** - you can disable fade effects completely for clean text mode
 
-The plugin uses intelligent algorithms to provide smooth transitions and optimal performance, ensuring your writing flow remains uninterrupted.
+The plugin uses intelligent algorithms to provide smooth transitions and optimal performance, ensuring your writing flow remains uninterrupted. When fade effects are disabled, all lines maintain full opacity for a clean, distraction-free experience.
 
 ## Author
-**Made with ❤️ by [Vlad | 3Design](https://github.com/Vlad3Design)**
+**FadeLine** is created by **[Vlad 3Design](https://github.com/Vlad3Design)**
 
 A focus-enhancing Obsidian plugin designed to help you concentrate on your current line while maintaining context of surrounding content. Perfect for writers, developers, students, and anyone who values deep focus.
 

@@ -5,6 +5,44 @@ All notable changes to the FadeLine plugin will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.2.0] - 2025-06-27
+
+### Added
+- **Fade toggle option:** New setting to completely disable fade effects
+- **Enhanced settings UI:** Live preview of fade effects in settings
+- **Improved preset system:** Better organized presets with descriptions
+- **Click detection:** Plugin now responds to clicks on different lines
+- **Better performance:** Optimized fade calculations and smoother transitions
+
+### Changed
+- **Default settings:** Fade is now enabled by default for better user experience
+- **Preset organization:** Reorganized presets with clearer naming and descriptions
+- **Settings layout:** Improved settings tab layout with better grouping
+
+### Removed
+- **Highlighting functionality:** Removed all line highlighting features due to technical issues
+- **Highlight settings:** Removed highlight style, color, and intensity controls
+- **Highlight presets:** Removed "No Highlight Mode" preset
+- **Highlight CSS:** Removed all highlight-related CSS styles
+
+### Features
+- **Toggle fade effects:** Enable/disable fade with a single click in settings
+- **Live preview:** See exactly how your settings will look in the settings tab
+- **Click responsiveness:** Plugin updates focus when clicking on different lines
+- **Simplified interface:** Cleaner settings with focus on fade and auto-scroll
+- **Improved performance:** Reduced code complexity and better performance
+- **Better reliability:** More stable functionality without highlighting conflicts
+
+### Technical
+- Added `enableFade` setting with proper CSS class management
+- Enhanced settings tab with live preview functionality
+- Improved fade calculation algorithm for smoother transitions
+- Added click event listeners for better user interaction
+- Removed `enableHighlight`, `highlightStyle`, `highlightColor`, and `highlightIntensity` settings
+- Simplified `updateFocusEffect()` function to handle only fade effects
+- Cleaned up CSS by removing all highlight-related styles
+- Updated preset system to work without highlighting options
+
 ## [1.1.0] - 2025-06-27
 
 ### Added

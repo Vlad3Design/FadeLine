@@ -1,9 +1,9 @@
 {
   "id": "fadeline",
   "name": "FadeLine",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "minAppVersion": "0.15.0",
-  "description": "Focus-enhancing plugin that fades distant lines and provides auto-scroll to keep the current line centered.",
+  "description": "Focus-enhancing plugin with fade effects and auto-scroll to keep the current line centered.",
   "author": "Vlad 3Design",
   "authorUrl": "https://github.com/Vlad3Design",
   "isDesktopOnly": false

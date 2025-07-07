@@ -5,10 +5,12 @@
 
 .fadeline-enabled .cm-line {
   transition: opacity 0.2s;
+  position: relative;
 }
 
 .fadeline-enabled .cm-line.fadeline-current {
   opacity: 1 !important;
+  position: relative;
 }
 
 /* Auto-scroll indicator */
@@ -106,16 +108,13 @@
   position: relative;
 }
 
-.fadeline-enabled .cm-line.fadeline-current::before {
-  content: '';
-  position: absolute;
-  left: -8px;
-  top: 0;
-  bottom: 0;
-  width: 3px;
-  background: var(--text-accent);
-  border-radius: 2px;
-  opacity: 0.8;
+/* When fade is disabled, ensure all lines have full opacity except current */
+.fadeline-enabled.fadeline-no-fade .cm-line {
+  opacity: 1 !important;
+}
+
+.fadeline-enabled.fadeline-no-fade .cm-line.fadeline-current {
+  opacity: 1 !important;
 }
 
 /* Responsive design for settings */

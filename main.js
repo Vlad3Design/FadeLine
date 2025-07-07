@@ -86,6 +86,7 @@ var COMBINED_PRESETS = [
   {
     name: "Writing Mode",
     description: "Optimized for active writing",
+    enableFade: true,
     fadeAmount: 0.1,
     fadeRadius: 4,
     autoScroll: true,
@@ -95,6 +96,7 @@ var COMBINED_PRESETS = [
   {
     name: "Reading Mode",
     description: "Gentle focus for reading",
+    enableFade: true,
     fadeAmount: 0.3,
     fadeRadius: 3,
     autoScroll: true,
@@ -104,6 +106,7 @@ var COMBINED_PRESETS = [
   {
     name: "Coding Mode",
     description: "Sharp focus for code editing",
+    enableFade: true,
     fadeAmount: 0.05,
     fadeRadius: 6,
     autoScroll: true,
@@ -113,6 +116,7 @@ var COMBINED_PRESETS = [
   {
     name: "Focus Mode",
     description: "Balanced fade with instant scroll response",
+    enableFade: true,
     fadeAmount: 0.1,
     fadeRadius: 4,
     autoScroll: true,
@@ -122,6 +126,7 @@ var COMBINED_PRESETS = [
   {
     name: "Presentation Mode",
     description: "Slow, deliberate for presentations",
+    enableFade: true,
     fadeAmount: 0.2,
     fadeRadius: 2,
     autoScroll: true,
@@ -131,14 +136,26 @@ var COMBINED_PRESETS = [
   {
     name: "Minimal Mode",
     description: "Subtle effects, no auto-scroll",
+    enableFade: true,
     fadeAmount: 0.6,
     fadeRadius: 2,
     autoScroll: false,
     autoScrollDelay: 500,
     autoScrollSmoothness: 0.3
+  },
+  {
+    name: "No Fade Mode",
+    description: "Auto-scroll only, no fade effects",
+    enableFade: false,
+    fadeAmount: 0.1,
+    fadeRadius: 4,
+    autoScroll: true,
+    autoScrollDelay: 200,
+    autoScrollSmoothness: 0.3
   }
 ];
 var DEFAULT_SETTINGS = {
+  enableFade: true,
   fadeAmount: 0.1,
   fadeRadius: 4,
   autoScroll: true,
@@ -181,12 +198,19 @@ var FadeLinePlugin = class extends import_obsidian.Plugin {
   updateCSSVars() {
     document.documentElement.style.setProperty("--fadeline-fade-amount", this.settings.fadeAmount.toString());
     document.documentElement.style.setProperty("--fadeline-fade-radius", this.settings.fadeRadius.toString());
+    if (this.settings.enableFade) {
+      document.body.classList.remove("fadeline-no-fade");
+    } else {
+      document.body.classList.add("fadeline-no-fade");
+    }
   }
   addBodyClass() {
     document.body.classList.add("fadeline-enabled");
+    this.updateCSSVars();
   }
   removeBodyClass() {
     document.body.classList.remove("fadeline-enabled");
+    document.body.classList.remove("fadeline-no-fade");
   }
   registerEvents() {
     this.registerEvent(this.app.workspace.on("active-leaf-change", () => this.onActiveLeafChange()));
@@ -236,22 +260,31 @@ var FadeLinePlugin = class extends import_obsidian.Plugin {
     if (!editorEl)
       return;
     const lines = editorEl.querySelectorAll(".cm-line");
+    if (lines.length === 0)
+      return;
     const cursorLine = editor.getCursor().line;
-    const radius = this.settings.fadeRadius;
-    const minFade = this.settings.fadeAmount;
+    const cursorPos = editor.getCursor();
+    const currentLineElement = editor.getLine(cursorPos.line);
     lines.forEach((line, idx) => {
       const el = line;
-      const dist = Math.abs(idx - cursorLine);
-      if (dist === 0) {
-        el.classList.add("fadeline-current");
-        el.style.opacity = "1";
-      } else if (dist <= radius) {
-        const fade = minFade + (1 - minFade) * (1 - dist / (radius + 1));
-        el.classList.remove("fadeline-current");
-        el.style.opacity = fade.toFixed(3);
+      const lineText = el.textContent || "";
+      const isCurrentLine = lineText === currentLineElement;
+      if (this.settings.enableFade) {
+        if (isCurrentLine) {
+          el.style.opacity = "1";
+        } else {
+          const radius = this.settings.fadeRadius;
+          const minFade = this.settings.fadeAmount;
+          const dist = Math.abs(idx - cursorLine);
+          if (dist <= radius) {
+            const fade = minFade + (1 - minFade) * (1 - dist / (radius + 1));
+            el.style.opacity = fade.toFixed(3);
+          } else {
+            el.style.opacity = minFade.toString();
+          }
+        }
       } else {
-        el.classList.remove("fadeline-current");
-        el.style.opacity = minFade.toString();
+        el.style.opacity = "1";
       }
     });
     if (this.settings.autoScroll) {
@@ -320,8 +353,13 @@ var FadeLinePlugin = class extends import_obsidian.Plugin {
       return;
     const lines = editorEl.querySelectorAll(".cm-line");
     lines.forEach((line) => {
-      line.classList.remove("fadeline-current");
-      line.style.opacity = "";
+      const el = line;
+      el.classList.remove("fadeline-current");
+      if (!this.settings.enableFade) {
+        el.style.opacity = "1";
+      } else {
+        el.style.opacity = "";
+      }
     });
   }
 };
@@ -339,9 +377,10 @@ var FadeLineSettingTab = class extends import_obsidian.PluginSettingTab {
       COMBINED_PRESETS.forEach((preset, idx) => {
         drop.addOption(idx.toString(), preset.name);
       });
-      drop.setValue(COMBINED_PRESETS.findIndex((p) => p.fadeAmount === this.plugin.settings.fadeAmount && p.fadeRadius === this.plugin.settings.fadeRadius && p.autoScroll === this.plugin.settings.autoScroll && p.autoScrollDelay === this.plugin.settings.autoScrollDelay && p.autoScrollSmoothness === this.plugin.settings.autoScrollSmoothness).toString());
+      drop.setValue(COMBINED_PRESETS.findIndex((p) => p.enableFade === this.plugin.settings.enableFade && p.fadeAmount === this.plugin.settings.fadeAmount && p.fadeRadius === this.plugin.settings.fadeRadius && p.autoScroll === this.plugin.settings.autoScroll && p.autoScrollDelay === this.plugin.settings.autoScrollDelay && p.autoScrollSmoothness === this.plugin.settings.autoScrollSmoothness).toString());
       drop.onChange(async (val) => {
         const preset = COMBINED_PRESETS[parseInt(val)];
+        this.plugin.settings.enableFade = preset.enableFade;
         this.plugin.settings.fadeAmount = preset.fadeAmount;
         this.plugin.settings.fadeRadius = preset.fadeRadius;
         this.plugin.settings.autoScroll = preset.autoScroll;
@@ -352,29 +391,36 @@ var FadeLineSettingTab = class extends import_obsidian.PluginSettingTab {
       });
     });
     containerEl.createEl("h3", { text: "Fade Settings" });
-    new import_obsidian.Setting(containerEl).setName("Fade Presets").setDesc("Quickly choose a fade effect").addDropdown((drop) => {
-      FADE_PRESETS.forEach((preset, idx) => {
-        drop.addOption(idx.toString(), preset.name);
+    new import_obsidian.Setting(containerEl).setName("Enable Fade Effects").setDesc("Toggle fade effects on/off. When disabled, only the current line will be highlighted.").addToggle((toggle) => toggle.setValue(this.plugin.settings.enableFade).onChange(async (value) => {
+      this.plugin.settings.enableFade = value;
+      await this.plugin.saveSettings();
+      this.display();
+    }));
+    if (this.plugin.settings.enableFade) {
+      new import_obsidian.Setting(containerEl).setName("Fade Presets").setDesc("Quickly choose a fade effect").addDropdown((drop) => {
+        FADE_PRESETS.forEach((preset, idx) => {
+          drop.addOption(idx.toString(), preset.name);
+        });
+        drop.setValue(FADE_PRESETS.findIndex((p) => p.fadeAmount === this.plugin.settings.fadeAmount && p.fadeRadius === this.plugin.settings.fadeRadius).toString());
+        drop.onChange(async (val) => {
+          const preset = FADE_PRESETS[parseInt(val)];
+          this.plugin.settings.fadeAmount = preset.fadeAmount;
+          this.plugin.settings.fadeRadius = preset.fadeRadius;
+          await this.plugin.saveSettings();
+          this.display();
+        });
       });
-      drop.setValue(FADE_PRESETS.findIndex((p) => p.fadeAmount === this.plugin.settings.fadeAmount && p.fadeRadius === this.plugin.settings.fadeRadius).toString());
-      drop.onChange(async (val) => {
-        const preset = FADE_PRESETS[parseInt(val)];
-        this.plugin.settings.fadeAmount = preset.fadeAmount;
-        this.plugin.settings.fadeRadius = preset.fadeRadius;
+      new import_obsidian.Setting(containerEl).setName("Fade Amount").setDesc("Minimum opacity for distant lines (0.1 = very faded, 0.9 = almost visible)").addSlider((slider) => slider.setLimits(0.1, 0.9, 0.01).setValue(this.plugin.settings.fadeAmount).setDynamicTooltip().onChange(async (value) => {
+        this.plugin.settings.fadeAmount = value;
         await this.plugin.saveSettings();
         this.display();
-      });
-    });
-    new import_obsidian.Setting(containerEl).setName("Fade Amount").setDesc("Minimum opacity for distant lines (0.1 = very faded, 0.9 = almost visible)").addSlider((slider) => slider.setLimits(0.1, 0.9, 0.01).setValue(this.plugin.settings.fadeAmount).setDynamicTooltip().onChange(async (value) => {
-      this.plugin.settings.fadeAmount = value;
-      await this.plugin.saveSettings();
-      this.display();
-    }));
-    new import_obsidian.Setting(containerEl).setName("Fade Radius").setDesc("How many lines around the active one should be gradually faded (1-6)").addSlider((slider) => slider.setLimits(1, 6, 1).setValue(this.plugin.settings.fadeRadius).setDynamicTooltip().onChange(async (value) => {
-      this.plugin.settings.fadeRadius = value;
-      await this.plugin.saveSettings();
-      this.display();
-    }));
+      }));
+      new import_obsidian.Setting(containerEl).setName("Fade Radius").setDesc("How many lines around the active one should be gradually faded (1-6)").addSlider((slider) => slider.setLimits(1, 6, 1).setValue(this.plugin.settings.fadeRadius).setDynamicTooltip().onChange(async (value) => {
+        this.plugin.settings.fadeRadius = value;
+        await this.plugin.saveSettings();
+        this.display();
+      }));
+    }
     containerEl.createEl("h3", { text: "Auto-Scroll Settings" });
     new import_obsidian.Setting(containerEl).setName("Enable Auto-Scroll").setDesc("Automatically scroll to keep the current line centered in the editor").addToggle((toggle) => toggle.setValue(this.plugin.settings.autoScroll).onChange(async (value) => {
       this.plugin.settings.autoScroll = value;
@@ -417,19 +463,29 @@ var FadeLineSettingTab = class extends import_obsidian.PluginSettingTab {
         </div>
       `;
     }
-    const radius = this.plugin.settings.fadeRadius;
-    const minFade = this.plugin.settings.fadeAmount;
-    let html = "";
-    for (let i = -radius - 1; i <= radius + 1; i++) {
-      if (i === 0) {
-        html += '<div class="fadeline-preview-line fadeline-preview-current">\u2190 This is your current line (focused)</div>';
-      } else if (Math.abs(i) <= radius) {
-        const fade = minFade + (1 - minFade) * (1 - Math.abs(i) / (radius + 1));
-        html += `<div class="fadeline-preview-line" style="opacity:${fade.toFixed(3)}">This line is near focus</div>`;
-      } else {
-        html += `<div class="fadeline-preview-line" style="opacity:${minFade}">This line is dimmed</div>`;
+    if (this.plugin.settings.enableFade) {
+      const radius = this.plugin.settings.fadeRadius;
+      const minFade = this.plugin.settings.fadeAmount;
+      let html = "";
+      for (let i = -radius - 1; i <= radius + 1; i++) {
+        if (i === 0) {
+          html += `<div class="fadeline-preview-line fadeline-preview-current">\u2190 This is your current line (focused)</div>`;
+        } else if (Math.abs(i) <= radius) {
+          const fade = minFade + (1 - minFade) * (1 - Math.abs(i) / (radius + 1));
+          html += `<div class="fadeline-preview-line" style="opacity:${fade.toFixed(3)}">This line is near focus</div>`;
+        } else {
+          html += `<div class="fadeline-preview-line" style="opacity:${minFade}">This line is dimmed</div>`;
+        }
       }
+      preview.innerHTML += html;
+    } else {
+      preview.innerHTML += `
+        <div class="fadeline-preview-line fadeline-preview-current">\u2190 This is your current line</div>
+        <div class="fadeline-preview-line" style="opacity: 0.7;">This line is not focused</div>
+        <div class="fadeline-preview-line" style="opacity: 0.7;">This line is not focused</div>
+        <div class="fadeline-preview-line" style="opacity: 0.7;">This line is not focused</div>
+        <div class="fadeline-preview-line" style="opacity: 0.7;">This line is not focused</div>
+      `;
     }
-    preview.innerHTML += html;
   }
 };

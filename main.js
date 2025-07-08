@@ -196,8 +196,6 @@ var FadeLinePlugin = class extends import_obsidian.Plugin {
     this.updateFocusEffect();
   }
   updateCSSVars() {
-    document.documentElement.style.setProperty("--fadeline-fade-amount", this.settings.fadeAmount.toString());
-    document.documentElement.style.setProperty("--fadeline-fade-radius", this.settings.fadeRadius.toString());
     if (this.settings.enableFade) {
       document.body.classList.remove("fadeline-no-fade");
     } else {
@@ -211,6 +209,23 @@ var FadeLinePlugin = class extends import_obsidian.Plugin {
   removeBodyClass() {
     document.body.classList.remove("fadeline-enabled");
     document.body.classList.remove("fadeline-no-fade");
+  }
+  getOpacityClassName(opacity) {
+    if (opacity >= 1)
+      return "fadeline-opacity-1";
+    if (opacity <= 0)
+      return "fadeline-opacity-0";
+    const rounded = Math.round(opacity * 20) / 20;
+    const classValue = rounded.toString().replace(".", "");
+    return `fadeline-opacity-${classValue}`;
+  }
+  removeOpacityClasses(element) {
+    const classes = element.className.split(" ").filter((cls) => !cls.startsWith("fadeline-opacity-"));
+    element.className = classes.join(" ");
+  }
+  getEditorContainer(editor) {
+    const editorWithContainer = editor;
+    return editorWithContainer.containerEl || null;
   }
   registerEvents() {
     this.registerEvent(this.app.workspace.on("active-leaf-change", () => this.onActiveLeafChange()));
@@ -228,11 +243,14 @@ var FadeLinePlugin = class extends import_obsidian.Plugin {
     if (!view)
       return;
     const editor = view.editor;
-    const editorEl = editor.containerEl;
+    const editorEl = this.getEditorContainer(editor);
     if (!editorEl)
       return;
+    const boundClickHandler = this.handleEditorClick.bind(this);
+    editorEl.removeEventListener("click", boundClickHandler);
     editorEl.removeEventListener("click", this.handleEditorClick);
-    editorEl.addEventListener("click", this.handleEditorClick.bind(this));
+    editorEl.addEventListener("click", boundClickHandler);
+    editorEl.__fadelineClickHandler = boundClickHandler;
   }
   handleEditorClick() {
     setTimeout(() => {
@@ -256,35 +274,44 @@ var FadeLinePlugin = class extends import_obsidian.Plugin {
     if (!this.activeEditor)
       return;
     const editor = this.activeEditor;
-    const editorEl = editor.containerEl;
+    const editorEl = this.getEditorContainer(editor);
     if (!editorEl)
       return;
     const lines = editorEl.querySelectorAll(".cm-line");
     if (lines.length === 0)
       return;
     const cursorLine = editor.getCursor().line;
-    const cursorPos = editor.getCursor();
-    const currentLineElement = editor.getLine(cursorPos.line);
     lines.forEach((line, idx) => {
       const el = line;
-      const lineText = el.textContent || "";
-      const isCurrentLine = lineText === currentLineElement;
+      this.removeOpacityClasses(el);
+      el.classList.remove("fadeline-current");
       if (this.settings.enableFade) {
+        const isCurrentLineByIndex = idx === cursorLine;
+        let isCurrentLineByContent = false;
+        try {
+          const cursorPos = editor.getCursor();
+          const currentLineElement = editor.getLine(cursorPos.line);
+          const lineText = el.textContent || "";
+          isCurrentLineByContent = lineText === currentLineElement;
+        } catch (e) {
+          isCurrentLineByContent = isCurrentLineByIndex;
+        }
+        const isCurrentLine = isCurrentLineByIndex || isCurrentLineByContent;
         if (isCurrentLine) {
-          el.style.opacity = "1";
+          el.classList.add("fadeline-current");
         } else {
           const radius = this.settings.fadeRadius;
           const minFade = this.settings.fadeAmount;
           const dist = Math.abs(idx - cursorLine);
           if (dist <= radius) {
             const fade = minFade + (1 - minFade) * (1 - dist / (radius + 1));
-            el.style.opacity = fade.toFixed(3);
+            el.classList.add(this.getOpacityClassName(fade));
           } else {
-            el.style.opacity = minFade.toString();
+            el.classList.add(this.getOpacityClassName(minFade));
           }
         }
       } else {
-        el.style.opacity = "1";
+        el.classList.add("fadeline-opacity-1");
       }
     });
     if (this.settings.autoScroll) {
@@ -303,7 +330,7 @@ var FadeLinePlugin = class extends import_obsidian.Plugin {
     if (!this.activeEditor)
       return;
     const editor = this.activeEditor;
-    const editorEl = editor.containerEl;
+    const editorEl = this.getEditorContainer(editor);
     if (!editorEl)
       return;
     const lines = editorEl.querySelectorAll(".cm-line");
@@ -348,18 +375,14 @@ var FadeLinePlugin = class extends import_obsidian.Plugin {
     const editor = this.activeEditor;
     if (!editor)
       return;
-    const editorEl = editor.containerEl;
+    const editorEl = this.getEditorContainer(editor);
     if (!editorEl)
       return;
     const lines = editorEl.querySelectorAll(".cm-line");
     lines.forEach((line) => {
       const el = line;
+      this.removeOpacityClasses(el);
       el.classList.remove("fadeline-current");
-      if (!this.settings.enableFade) {
-        el.style.opacity = "1";
-      } else {
-        el.style.opacity = "";
-      }
     });
   }
 };
@@ -457,35 +480,41 @@ var FadeLineSettingTab = class extends import_obsidian.PluginSettingTab {
     const preview = containerEl.createDiv("fadeline-preview");
     if (this.plugin.settings.autoScroll) {
       const scrollInfo = preview.createDiv("fadeline-scroll-info");
-      scrollInfo.innerHTML = `
-        <div style="margin-bottom: 8px; padding: 8px; background: var(--background-modifier-hover); border-radius: 4px; font-size: 12px;">
-          <strong>Auto-Scroll Active:</strong> ${this.plugin.settings.autoScrollDelay}ms delay, ${this.plugin.settings.autoScrollSmoothness} smoothness
-        </div>
-      `;
+      const infoDiv = scrollInfo.createDiv();
+      infoDiv.style.marginBottom = "8px";
+      infoDiv.style.padding = "8px";
+      infoDiv.style.background = "var(--background-modifier-hover)";
+      infoDiv.style.borderRadius = "4px";
+      infoDiv.style.fontSize = "12px";
+      const strong = infoDiv.createEl("strong");
+      strong.textContent = "Auto-Scroll Active:";
+      infoDiv.appendText(` ${this.plugin.settings.autoScrollDelay}ms delay, ${this.plugin.settings.autoScrollSmoothness} smoothness`);
     }
     if (this.plugin.settings.enableFade) {
       const radius = this.plugin.settings.fadeRadius;
       const minFade = this.plugin.settings.fadeAmount;
-      let html = "";
       for (let i = -radius - 1; i <= radius + 1; i++) {
+        const previewLine = preview.createDiv("fadeline-preview-line");
         if (i === 0) {
-          html += `<div class="fadeline-preview-line fadeline-preview-current">\u2190 This is your current line (focused)</div>`;
+          previewLine.addClass("fadeline-preview-current");
+          previewLine.textContent = "\u2190 This is your current line (focused)";
         } else if (Math.abs(i) <= radius) {
           const fade = minFade + (1 - minFade) * (1 - Math.abs(i) / (radius + 1));
-          html += `<div class="fadeline-preview-line" style="opacity:${fade.toFixed(3)}">This line is near focus</div>`;
+          previewLine.style.opacity = fade.toFixed(3);
+          previewLine.textContent = "This line is near focus";
         } else {
-          html += `<div class="fadeline-preview-line" style="opacity:${minFade}">This line is dimmed</div>`;
+          previewLine.style.opacity = minFade.toString();
+          previewLine.textContent = "This line is dimmed";
         }
       }
-      preview.innerHTML += html;
     } else {
-      preview.innerHTML += `
-        <div class="fadeline-preview-line fadeline-preview-current">\u2190 This is your current line</div>
-        <div class="fadeline-preview-line" style="opacity: 0.7;">This line is not focused</div>
-        <div class="fadeline-preview-line" style="opacity: 0.7;">This line is not focused</div>
-        <div class="fadeline-preview-line" style="opacity: 0.7;">This line is not focused</div>
-        <div class="fadeline-preview-line" style="opacity: 0.7;">This line is not focused</div>
-      `;
+      const currentLine = preview.createDiv("fadeline-preview-line fadeline-preview-current");
+      currentLine.textContent = "\u2190 This is your current line";
+      for (let i = 0; i < 4; i++) {
+        const notFocusedLine = preview.createDiv("fadeline-preview-line");
+        notFocusedLine.style.opacity = "0.7";
+        notFocusedLine.textContent = "This line is not focused";
+      }
     }
   }
 };

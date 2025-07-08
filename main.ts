@@ -11,6 +11,7 @@
 import { App, Plugin, PluginSettingTab, Setting, Editor, MarkdownView } from 'obsidian';
 
 interface FadeLineSettings {
+  enableFade: boolean;
   fadeAmount: number;
   fadeRadius: number;
   autoScroll: boolean;
@@ -77,6 +78,7 @@ const COMBINED_PRESETS = [
   {
     name: 'Writing Mode',
     description: 'Optimized for active writing',
+    enableFade: true,
     fadeAmount: 0.1,
     fadeRadius: 4,
     autoScroll: true,
@@ -86,6 +88,7 @@ const COMBINED_PRESETS = [
   {
     name: 'Reading Mode',
     description: 'Gentle focus for reading',
+    enableFade: true,
     fadeAmount: 0.3,
     fadeRadius: 3,
     autoScroll: true,
@@ -95,6 +98,7 @@ const COMBINED_PRESETS = [
   {
     name: 'Coding Mode',
     description: 'Sharp focus for code editing',
+    enableFade: true,
     fadeAmount: 0.05,
     fadeRadius: 6,
     autoScroll: true,
@@ -104,6 +108,7 @@ const COMBINED_PRESETS = [
   {
     name: 'Focus Mode',
     description: 'Balanced fade with instant scroll response',
+    enableFade: true,
     fadeAmount: 0.1,
     fadeRadius: 4,
     autoScroll: true,
@@ -113,6 +118,7 @@ const COMBINED_PRESETS = [
   {
     name: 'Presentation Mode',
     description: 'Slow, deliberate for presentations',
+    enableFade: true,
     fadeAmount: 0.2,
     fadeRadius: 2,
     autoScroll: true,
@@ -122,15 +128,27 @@ const COMBINED_PRESETS = [
   {
     name: 'Minimal Mode',
     description: 'Subtle effects, no auto-scroll',
+    enableFade: true,
     fadeAmount: 0.6,
     fadeRadius: 2,
     autoScroll: false,
     autoScrollDelay: 500,
     autoScrollSmoothness: 0.3
+  },
+  {
+    name: 'No Fade Mode',
+    description: 'Auto-scroll only, no fade effects',
+    enableFade: false,
+    fadeAmount: 0.1,
+    fadeRadius: 4,
+    autoScroll: true,
+    autoScrollDelay: 200,
+    autoScrollSmoothness: 0.3
   }
 ];
 
 const DEFAULT_SETTINGS: FadeLineSettings = {
+  enableFade: true,
   fadeAmount: 0.1,
   fadeRadius: 4,
   autoScroll: true,
@@ -175,20 +193,58 @@ export default class FadeLinePlugin extends Plugin {
   }
 
   updateCSSVars() {
-    document.documentElement.style.setProperty('--fadeline-fade-amount', this.settings.fadeAmount.toString());
-    document.documentElement.style.setProperty('--fadeline-fade-radius', this.settings.fadeRadius.toString());
+    // Update body classes based on settings
+    if (this.settings.enableFade) {
+      document.body.classList.remove('fadeline-no-fade');
+    } else {
+      document.body.classList.add('fadeline-no-fade');
+    }
   }
 
   addBodyClass() {
     document.body.classList.add('fadeline-enabled');
+    this.updateCSSVars(); // Ensure fade state is applied
   }
 
   removeBodyClass() {
     document.body.classList.remove('fadeline-enabled');
+    document.body.classList.remove('fadeline-no-fade');
+  }
+
+  /**
+   * Converts opacity value to CSS class name
+   */
+  private getOpacityClassName(opacity: number): string {
+    if (opacity >= 1) return 'fadeline-opacity-1';
+    if (opacity <= 0) return 'fadeline-opacity-0';
+    
+    // Round to nearest 0.05 for available CSS classes
+    const rounded = Math.round(opacity * 20) / 20;
+    const classValue = rounded.toString().replace('.', '');
+    return `fadeline-opacity-${classValue}`;
+  }
+
+  /**
+   * Removes all fadeline opacity classes from an element
+   */
+  private removeOpacityClasses(element: HTMLElement): void {
+    const classes = element.className.split(' ').filter(cls => !cls.startsWith('fadeline-opacity-'));
+    element.className = classes.join(' ');
+  }
+
+  /**
+   * Safely gets the editor container element with proper type checking
+   */
+  private getEditorContainer(editor: Editor): HTMLElement | null {
+    // Use proper interface to access containerEl
+    const editorWithContainer = editor as any; // TODO: Replace with proper type when available
+    return editorWithContainer.containerEl || null;
   }
 
   registerEvents() {
     this.registerEvent(this.app.workspace.on('active-leaf-change', () => this.onActiveLeafChange()));
+    
+    // IMMEDIATE fade update - like original
     this.registerEvent(this.app.workspace.on('editor-change', () => this.updateFocusEffect()));
     
     // Add click event listener for editor clicks
@@ -196,7 +252,7 @@ export default class FadeLinePlugin extends Plugin {
       this.setupEditorClickListeners();
     }));
     
-    // Add cursor position change detection
+    // DEBOUNCED handler for other optimizations - like original
     this.registerEvent(this.app.workspace.on('editor-change', () => {
       this.handleCursorChange();
     }));
@@ -210,32 +266,39 @@ export default class FadeLinePlugin extends Plugin {
     if (!view) return;
     
     const editor = view.editor;
-    const editorEl = (editor as any).containerEl;
+    const editorEl = this.getEditorContainer(editor);
     if (!editorEl) return;
 
-    // Remove existing listeners to prevent duplicates
+    // Create bound function reference to properly remove/add listeners
+    const boundClickHandler = this.handleEditorClick.bind(this);
+    
+    // Remove existing listeners more thoroughly
+    editorEl.removeEventListener('click', boundClickHandler);
     editorEl.removeEventListener('click', this.handleEditorClick);
     
     // Add new click listener
-    editorEl.addEventListener('click', this.handleEditorClick.bind(this));
+    editorEl.addEventListener('click', boundClickHandler);
+    
+    // Store reference for proper cleanup
+    (editorEl as any).__fadelineClickHandler = boundClickHandler;
   }
 
   handleEditorClick() {
-    // Force update focus effect when clicking
+    // Force update focus effect when clicking - like original
     setTimeout(() => {
       this.updateFocusEffect();
     }, 10);
   }
 
   handleCursorChange() {
-    // Debounced cursor change handler
+    // Debounced cursor change handler - like original timing
     if (this.cursorChangeTimeout) {
       clearTimeout(this.cursorChangeTimeout);
     }
     
     this.cursorChangeTimeout = setTimeout(() => {
       this.updateFocusEffect();
-    }, 50);
+    }, 50); // Back to original 50ms timing
   }
 
   onActiveLeafChange() {
@@ -246,26 +309,62 @@ export default class FadeLinePlugin extends Plugin {
 
   updateFocusEffect() {
     if (!this.activeEditor) return;
+    
     const editor = this.activeEditor;
-    const editorEl = (editor as any).containerEl;
+    const editorEl = this.getEditorContainer(editor);
     if (!editorEl) return;
+    
     const lines = editorEl.querySelectorAll('.cm-line');
+    if (lines.length === 0) return;
+    
     const cursorLine = editor.getCursor().line;
-    const radius = this.settings.fadeRadius;
-    const minFade = this.settings.fadeAmount;
+    
+    // Process all lines with improved logic - combine both approaches for reliability
     lines.forEach((line: Element, idx: number) => {
       const el = line as HTMLElement;
-      const dist = Math.abs(idx - cursorLine);
-      if (dist === 0) {
-        el.classList.add('fadeline-current');
-        el.style.opacity = '1';
-      } else if (dist <= radius) {
-        const fade = minFade + (1 - minFade) * (1 - dist / (radius + 1));
-        el.classList.remove('fadeline-current');
-        el.style.opacity = fade.toFixed(3);
+      
+      // Remove all existing fade classes first
+      this.removeOpacityClasses(el);
+      el.classList.remove('fadeline-current');
+      
+      // Handle fade effects
+      if (this.settings.enableFade) {
+        // Use line index as primary method, fallback to text comparison if needed
+        const isCurrentLineByIndex = idx === cursorLine;
+        
+        // Secondary check using text content for extra reliability
+        let isCurrentLineByContent = false;
+        try {
+          const cursorPos = editor.getCursor();
+          const currentLineElement = editor.getLine(cursorPos.line);
+          const lineText = el.textContent || '';
+          isCurrentLineByContent = lineText === currentLineElement;
+        } catch (e) {
+          // Fallback to index method if text comparison fails
+          isCurrentLineByContent = isCurrentLineByIndex;
+        }
+        
+        const isCurrentLine = isCurrentLineByIndex || isCurrentLineByContent;
+        
+        if (isCurrentLine) {
+          // Current line - always full opacity
+          el.classList.add('fadeline-current');
+        } else {
+          // Calculate fade based on distance from current line
+          const radius = this.settings.fadeRadius;
+          const minFade = this.settings.fadeAmount;
+          const dist = Math.abs(idx - cursorLine);
+          
+          if (dist <= radius) {
+            const fade = minFade + (1 - minFade) * (1 - dist / (radius + 1));
+            el.classList.add(this.getOpacityClassName(fade));
+          } else {
+            el.classList.add(this.getOpacityClassName(minFade));
+          }
+        }
       } else {
-        el.classList.remove('fadeline-current');
-        el.style.opacity = minFade.toString();
+        // Fade disabled - keep all lines at full opacity
+        el.classList.add('fadeline-opacity-1');
       }
     });
 
@@ -291,7 +390,7 @@ export default class FadeLinePlugin extends Plugin {
     if (!this.activeEditor) return;
     
     const editor = this.activeEditor;
-    const editorEl = (editor as any).containerEl;
+    const editorEl = this.getEditorContainer(editor);
     if (!editorEl) return;
 
     // Get the current line element
@@ -323,7 +422,7 @@ export default class FadeLinePlugin extends Plugin {
       const targetScrollTop = currentScrollTop + scrollAmount;
 
       // Smooth scroll to target position
-      this.smoothScrollTo(editorContainer, targetScrollTop, this.settings.autoScrollSmoothness);
+      this.smoothScrollTo(editorContainer as HTMLElement, targetScrollTop, this.settings.autoScrollSmoothness);
     }
   }
 
@@ -352,12 +451,13 @@ export default class FadeLinePlugin extends Plugin {
   clearFocusEffect() {
     const editor = this.activeEditor;
     if (!editor) return;
-    const editorEl = (editor as any).containerEl;
+    const editorEl = this.getEditorContainer(editor);
     if (!editorEl) return;
     const lines = editorEl.querySelectorAll('.cm-line');
     lines.forEach((line: Element) => {
-      (line as HTMLElement).classList.remove('fadeline-current');
-      (line as HTMLElement).style.opacity = '';
+      const el = line as HTMLElement;
+      this.removeOpacityClasses(el);
+      el.classList.remove('fadeline-current');
     });
   }
 }
@@ -383,6 +483,7 @@ class FadeLineSettingTab extends PluginSettingTab {
           drop.addOption(idx.toString(), preset.name);
         });
         drop.setValue(COMBINED_PRESETS.findIndex(p => 
+          p.enableFade === this.plugin.settings.enableFade &&
           p.fadeAmount === this.plugin.settings.fadeAmount && 
           p.fadeRadius === this.plugin.settings.fadeRadius &&
           p.autoScroll === this.plugin.settings.autoScroll &&
@@ -391,6 +492,7 @@ class FadeLineSettingTab extends PluginSettingTab {
         ).toString());
         drop.onChange(async (val) => {
           const preset = COMBINED_PRESETS[parseInt(val)];
+          this.plugin.settings.enableFade = preset.enableFade;
           this.plugin.settings.fadeAmount = preset.fadeAmount;
           this.plugin.settings.fadeRadius = preset.fadeRadius;
           this.plugin.settings.autoScroll = preset.autoScroll;
@@ -405,47 +507,61 @@ class FadeLineSettingTab extends PluginSettingTab {
     containerEl.createEl('h3', { text: 'Fade Settings' });
     
     new Setting(containerEl)
-      .setName('Fade Presets')
-      .setDesc('Quickly choose a fade effect')
-      .addDropdown(drop => {
-        FADE_PRESETS.forEach((preset, idx) => {
-          drop.addOption(idx.toString(), preset.name);
-        });
-        drop.setValue(FADE_PRESETS.findIndex(p => p.fadeAmount === this.plugin.settings.fadeAmount && p.fadeRadius === this.plugin.settings.fadeRadius).toString());
-        drop.onChange(async (val) => {
-          const preset = FADE_PRESETS[parseInt(val)];
-          this.plugin.settings.fadeAmount = preset.fadeAmount;
-          this.plugin.settings.fadeRadius = preset.fadeRadius;
-          await this.plugin.saveSettings();
-          this.display();
-        });
-      });
-
-    new Setting(containerEl)
-      .setName('Fade Amount')
-      .setDesc('Minimum opacity for distant lines (0.1 = very faded, 0.9 = almost visible)')
-      .addSlider(slider => slider
-        .setLimits(0.1, 0.9, 0.01)
-        .setValue(this.plugin.settings.fadeAmount)
-        .setDynamicTooltip()
+      .setName('Enable Fade Effects')
+      .setDesc('Toggle fade effects on/off. When disabled, only the current line will be highlighted.')
+      .addToggle(toggle => toggle
+        .setValue(this.plugin.settings.enableFade)
         .onChange(async (value) => {
-          this.plugin.settings.fadeAmount = value;
+          this.plugin.settings.enableFade = value;
           await this.plugin.saveSettings();
           this.display();
         }));
 
-    new Setting(containerEl)
-      .setName('Fade Radius')
-      .setDesc('How many lines around the active one should be gradually faded (1-6)')
-      .addSlider(slider => slider
-        .setLimits(1, 6, 1)
-        .setValue(this.plugin.settings.fadeRadius)
-        .setDynamicTooltip()
-        .onChange(async (value) => {
-          this.plugin.settings.fadeRadius = value;
-          await this.plugin.saveSettings();
-          this.display();
-        }));
+    // Only show fade controls when fade is enabled
+    if (this.plugin.settings.enableFade) {
+      new Setting(containerEl)
+        .setName('Fade Presets')
+        .setDesc('Quickly choose a fade effect')
+        .addDropdown(drop => {
+          FADE_PRESETS.forEach((preset, idx) => {
+            drop.addOption(idx.toString(), preset.name);
+          });
+          drop.setValue(FADE_PRESETS.findIndex(p => p.fadeAmount === this.plugin.settings.fadeAmount && p.fadeRadius === this.plugin.settings.fadeRadius).toString());
+          drop.onChange(async (val) => {
+            const preset = FADE_PRESETS[parseInt(val)];
+            this.plugin.settings.fadeAmount = preset.fadeAmount;
+            this.plugin.settings.fadeRadius = preset.fadeRadius;
+            await this.plugin.saveSettings();
+            this.display();
+          });
+        });
+
+      new Setting(containerEl)
+        .setName('Fade Amount')
+        .setDesc('Minimum opacity for distant lines (0.1 = very faded, 0.9 = almost visible)')
+        .addSlider(slider => slider
+          .setLimits(0.1, 0.9, 0.01)
+          .setValue(this.plugin.settings.fadeAmount)
+          .setDynamicTooltip()
+          .onChange(async (value) => {
+            this.plugin.settings.fadeAmount = value;
+            await this.plugin.saveSettings();
+            this.display();
+          }));
+
+      new Setting(containerEl)
+        .setName('Fade Radius')
+        .setDesc('How many lines around the active one should be gradually faded (1-6)')
+        .addSlider(slider => slider
+          .setLimits(1, 6, 1)
+          .setValue(this.plugin.settings.fadeRadius)
+          .setDynamicTooltip()
+          .onChange(async (value) => {
+            this.plugin.settings.fadeRadius = value;
+            await this.plugin.saveSettings();
+            this.display();
+          }));
+    }
 
     // Auto-scroll section
     containerEl.createEl('h3', { text: 'Auto-Scroll Settings' });
@@ -514,27 +630,49 @@ class FadeLineSettingTab extends PluginSettingTab {
     // Add auto-scroll info to preview
     if (this.plugin.settings.autoScroll) {
       const scrollInfo = preview.createDiv('fadeline-scroll-info');
-      scrollInfo.innerHTML = `
-        <div style="margin-bottom: 8px; padding: 8px; background: var(--background-modifier-hover); border-radius: 4px; font-size: 12px;">
-          <strong>Auto-Scroll Active:</strong> ${this.plugin.settings.autoScrollDelay}ms delay, ${this.plugin.settings.autoScrollSmoothness} smoothness
-        </div>
-      `;
+      const infoDiv = scrollInfo.createDiv();
+      infoDiv.style.marginBottom = '8px';
+      infoDiv.style.padding = '8px';
+      infoDiv.style.background = 'var(--background-modifier-hover)';
+      infoDiv.style.borderRadius = '4px';
+      infoDiv.style.fontSize = '12px';
+      
+      const strong = infoDiv.createEl('strong');
+      strong.textContent = 'Auto-Scroll Active:';
+      infoDiv.appendText(` ${this.plugin.settings.autoScrollDelay}ms delay, ${this.plugin.settings.autoScrollSmoothness} smoothness`);
     }
     
-    // Generate gradual preview
-    const radius = this.plugin.settings.fadeRadius;
-    const minFade = this.plugin.settings.fadeAmount;
-    let html = '';
-    for (let i = -radius - 1; i <= radius + 1; i++) {
-      if (i === 0) {
-        html += '<div class="fadeline-preview-line fadeline-preview-current">← This is your current line (focused)</div>';
-      } else if (Math.abs(i) <= radius) {
-        const fade = minFade + (1 - minFade) * (1 - Math.abs(i) / (radius + 1));
-        html += `<div class=\"fadeline-preview-line\" style=\"opacity:${fade.toFixed(3)}\">This line is near focus</div>`;
-      } else {
-        html += `<div class=\"fadeline-preview-line\" style=\"opacity:${minFade}\">This line is dimmed</div>`;
+    // Generate preview based on settings
+    if (this.plugin.settings.enableFade) {
+      // Show fade preview
+      const radius = this.plugin.settings.fadeRadius;
+      const minFade = this.plugin.settings.fadeAmount;
+      
+      for (let i = -radius - 1; i <= radius + 1; i++) {
+        const previewLine = preview.createDiv('fadeline-preview-line');
+        
+        if (i === 0) {
+          previewLine.addClass('fadeline-preview-current');
+          previewLine.textContent = '← This is your current line (focused)';
+        } else if (Math.abs(i) <= radius) {
+          const fade = minFade + (1 - minFade) * (1 - Math.abs(i) / (radius + 1));
+          previewLine.style.opacity = fade.toFixed(3);
+          previewLine.textContent = 'This line is near focus';
+        } else {
+          previewLine.style.opacity = minFade.toString();
+          previewLine.textContent = 'This line is dimmed';
+        }
+      }
+    } else {
+      // Show no-fade preview
+      const currentLine = preview.createDiv('fadeline-preview-line fadeline-preview-current');
+      currentLine.textContent = '← This is your current line';
+      
+      for (let i = 0; i < 4; i++) {
+        const notFocusedLine = preview.createDiv('fadeline-preview-line');
+        notFocusedLine.style.opacity = '0.7';
+        notFocusedLine.textContent = 'This line is not focused';
       }
     }
-    preview.innerHTML += html;
   }
 } 

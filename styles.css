@@ -4,13 +4,41 @@
 }
 
 .fadeline-enabled .cm-line {
-  transition: opacity 0.2s;
+  transition: opacity 0.15s ease-out;
   position: relative;
 }
 
 .fadeline-enabled .cm-line.fadeline-current {
   opacity: 1 !important;
   position: relative;
+}
+
+/* Opacity classes for fade effects - with faster, more responsive transitions */
+.fadeline-enabled .cm-line.fadeline-opacity-0 { opacity: 0; transition: opacity 0.15s ease-out; }
+.fadeline-enabled .cm-line.fadeline-opacity-005 { opacity: 0.05; transition: opacity 0.15s ease-out; }
+.fadeline-enabled .cm-line.fadeline-opacity-01 { opacity: 0.1; transition: opacity 0.15s ease-out; }
+.fadeline-enabled .cm-line.fadeline-opacity-015 { opacity: 0.15; transition: opacity 0.15s ease-out; }
+.fadeline-enabled .cm-line.fadeline-opacity-02 { opacity: 0.2; transition: opacity 0.15s ease-out; }
+.fadeline-enabled .cm-line.fadeline-opacity-025 { opacity: 0.25; transition: opacity 0.15s ease-out; }
+.fadeline-enabled .cm-line.fadeline-opacity-03 { opacity: 0.3; transition: opacity 0.15s ease-out; }
+.fadeline-enabled .cm-line.fadeline-opacity-035 { opacity: 0.35; transition: opacity 0.15s ease-out; }
+.fadeline-enabled .cm-line.fadeline-opacity-04 { opacity: 0.4; transition: opacity 0.15s ease-out; }
+.fadeline-enabled .cm-line.fadeline-opacity-045 { opacity: 0.45; transition: opacity 0.15s ease-out; }
+.fadeline-enabled .cm-line.fadeline-opacity-05 { opacity: 0.5; transition: opacity 0.15s ease-out; }
+.fadeline-enabled .cm-line.fadeline-opacity-055 { opacity: 0.55; transition: opacity 0.15s ease-out; }
+.fadeline-enabled .cm-line.fadeline-opacity-06 { opacity: 0.6; transition: opacity 0.15s ease-out; }
+.fadeline-enabled .cm-line.fadeline-opacity-065 { opacity: 0.65; transition: opacity 0.15s ease-out; }
+.fadeline-enabled .cm-line.fadeline-opacity-07 { opacity: 0.7; transition: opacity 0.15s ease-out; }
+.fadeline-enabled .cm-line.fadeline-opacity-075 { opacity: 0.75; transition: opacity 0.15s ease-out; }
+.fadeline-enabled .cm-line.fadeline-opacity-08 { opacity: 0.8; transition: opacity 0.15s ease-out; }
+.fadeline-enabled .cm-line.fadeline-opacity-085 { opacity: 0.85; transition: opacity 0.15s ease-out; }
+.fadeline-enabled .cm-line.fadeline-opacity-09 { opacity: 0.9; transition: opacity 0.15s ease-out; }
+.fadeline-enabled .cm-line.fadeline-opacity-095 { opacity: 0.95; transition: opacity 0.15s ease-out; }
+.fadeline-enabled .cm-line.fadeline-opacity-1 { opacity: 1; transition: opacity 0.15s ease-out; }
+
+/* Default opacity when no fade class is applied */
+.fadeline-enabled .cm-line:not([class*="fadeline-opacity"]) {
+  opacity: 1;
 }
 
 /* Auto-scroll indicator */
